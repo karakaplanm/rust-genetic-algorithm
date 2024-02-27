@@ -1,9 +1,18 @@
 /// A genetic algorithm in Rust
 /// Copyright (C) 2015  Andrew Schwartzmeyer
-
-use Problem;
-use rand::distributions::Range;
 use std::f64::consts;
+//use rand::Rng::Range;
+use std::ops::Range;
+
+#[derive(Debug, clap::ValueEnum, PartialEq, Eq, Copy, Clone)]
+pub enum Problem {
+    Ackley,
+    Griewangk,
+    Rastrigin,
+    Rosenbrock,
+    Schwefel,
+    Sphere,
+}
 
 impl Problem {
     /// Fitness function for the evolutionary computation benchmark
@@ -22,52 +31,57 @@ impl Problem {
         let p = x.len() as f64;
         match *self {
             Problem::Ackley => {
-                20_f64 + consts::E - 20_f64 *
-                    (-0.2_f64 * (p.recip() * (x.iter().fold(0_f64, |sum, x| {
-                        sum + x.powi(2)
-                    })).sqrt())).exp() -
-                    (p.recip() * x.iter().fold(0_f64, |sum, x| {
-                        sum + (2_f64 * consts::PI * x).cos()
-                    })).exp()}
+                20_f64 + consts::E
+                    - 20_f64
+                        * (-0.2_f64
+                            * (p.recip() * (x.iter().fold(0_f64, |sum, x| sum + x.powi(2))).sqrt()))
+                        .exp()
+                    - (p.recip()
+                        * x.iter()
+                            .fold(0_f64, |sum, x| sum + (2_f64 * consts::PI * x).cos()))
+                    .exp()
+            }
             Problem::Griewangk => {
-                1_f64 + x.iter().fold(0_f64, |sum, x| {
-                    sum + x.powi(2)/4000_f64
-                }) - x.iter().enumerate().fold(1_f64, |prod, (i, x)| {
-                    prod * (x/((i + 1) as f64).sqrt()).cos()
-                })}
+                1_f64 + x.iter().fold(0_f64, |sum, x| sum + x.powi(2) / 4000_f64)
+                    - x.iter().enumerate().fold(1_f64, |prod, (i, x)| {
+                        prod * (x / ((i + 1) as f64).sqrt()).cos()
+                    })
+            }
             Problem::Rastrigin => {
-                10_f64 * p + x.iter().fold(0_f64, |sum, x| {
-                    sum + x.powi(2) - 10_f64 * (2_f64 * consts::PI * x).cos()
-                })}
-            Problem::Rosenbrock => {
-                x.iter().skip(1).zip(x).fold(0_f64, |sum, (x_next, x)| {
-                    sum + 100_f64 * (x_next - x.powi(2)).powi(2)
-                        + (x - 1_f64).powi(2)
-                })}
+                10_f64 * p
+                    + x.iter().fold(0_f64, |sum, x| {
+                        sum + x.powi(2) - 10_f64 * (2_f64 * consts::PI * x).cos()
+                    })
+            }
+            Problem::Rosenbrock => x.iter().skip(1).zip(x).fold(0_f64, |sum, (x_next, x)| {
+                sum + 100_f64 * (x_next - x.powi(2)).powi(2) + (x - 1_f64).powi(2)
+            }),
+
             Problem::Schwefel => {
-                418.9829_f64 * p + x.iter().fold(0_f64, |sum, i| {
-                    sum + i * i.abs().sqrt().sin()
-                })}
-            Problem::Sphere => {
-                x.iter().fold(0_f64, |sum, x| sum + x.powi(2))}
+                418.9829_f64 * p
+                    + x.iter()
+                        .fold(0_f64, |sum, i| sum + i * i.abs().sqrt().sin())
+            }
+
+            Problem::Sphere => x.iter().fold(0_f64, |sum, x| sum + x.powi(2)),
         }
     }
 
     /// Domain for the given problem.
     pub fn domain(&self) -> (f64, f64) {
         match *self {
-            Problem::Ackley     => (-30_f64, 30_f64),
-            Problem::Griewangk  => (-600_f64, 600_f64),
-            Problem::Rastrigin  => (-5.12_f64, 5.12_f64),
+            Problem::Ackley => (-30_f64, 30_f64),
+            Problem::Griewangk => (-600_f64, 600_f64),
+            Problem::Rastrigin => (-5.12_f64, 5.12_f64),
             Problem::Rosenbrock => (-2.048_f64, 2.048_f64),
-            Problem::Schwefel   => (-512.03_f64, 511.97_f64),
-            Problem::Sphere     => (-5.12_f64, 5.12_f64),
+            Problem::Schwefel => (-512.03_f64, 511.97_f64),
+            Problem::Sphere => (-5.12_f64, 5.12_f64),
         }
     }
 
     /// Random distribution for problem's domain
     pub fn domain_dist(&self) -> Range<f64> {
         let (a, b) = self.domain();
-        Range::new(a, b)
+        a..b
     }
 }

@@ -24,3 +24,11 @@ Based on my prior implementation in [C++][].
 [benchmark problems]: https://www.cs.cmu.edu/afs/cs/project/jair/pub/volume24/ortizboyer05a-html/node6.html
 [Rust]: http://www.rust-lang.org/
 [C++]: https://github.com/andschwa/uidaho-cs472-project1
+
+
+== Update
+* Clap, rand crates are updated
+
+Usage:
+cargo run --release -- -f rastrigin
+

@@ -1,19 +1,22 @@
 /// A genetic algorithm in Rust
 /// Copyright (C) 2015  Andrew Schwartzmeyer
-
-use Parameters;
-use Problem;
-use individual::Individual;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 use std::thread;
-use time::precise_time_s;
+
+use std::time::Instant;
+
+use rand::seq::SliceRandom;
+
+use crate::individual::Individual;
+use crate::parameter::Parameters;
+use crate::problem::Problem;
 
 pub struct Results {
     pub problem: Problem,
     pub parameters: Parameters,
     pub individual: Individual,
     pub iterations: usize,
-    pub duration: f64
+    pub duration: f64,
 }
 
 /// A genetic algorithm that searches for convergence to the given
@@ -25,20 +28,22 @@ pub fn search(problem: Problem, params: Parameters) -> Results {
     let mut rng = thread_rng();
 
     // initialize population of individuals
-    let mut population: Vec<_> = (0..params.population).map(|_| {
-        Individual::new(problem, params.dimension, &mut rng)
-    }).collect();
+    let mut population: Vec<_> = (0..params.population)
+        .map(|_| Individual::new(problem, params.dimension, &mut rng))
+        .collect();
 
     // start timing the search
-    let start_time = precise_time_s();
+    let start_time = Instant::now();
 
     // search iterations number of generations
     for i in 0..params.iterations {
         // select, mutate, and crossover individuals for next generation
         let mut offspring: Vec<Individual> = Vec::with_capacity(population.len());
-        for _ in 0..population.len()/2 {
-            let (mut x, mut y) = (select(&population, params.selection, &mut rng),
-                                  select(&population, params.selection, &mut rng));
+        for _ in 0..population.len() / 2 {
+            let (mut x, mut y) = (
+                select(&population, params.selection, &mut rng),
+                select(&population, params.selection, &mut rng),
+            );
             x.mutate(params.mutation, &mut rng);
             y.mutate(params.mutation, &mut rng);
             Individual::crossover(&mut x, &mut y, params.crossover, &mut rng);
@@ -50,7 +55,7 @@ pub fn search(problem: Problem, params: Parameters) -> Results {
         // replace 2 random individuals with elite of prior generation
         for _ in 0..params.elitism {
             if let Some(x) = population.iter().min() {
-                offspring[rng.gen_range(0, population.len())] = x.clone();
+                offspring[rng.gen_range(0..population.len())] = x.clone();
             }
         }
 
@@ -61,13 +66,15 @@ pub fn search(problem: Problem, params: Parameters) -> Results {
         if let Some(x) = population.iter().min() {
             if x.fitness < params.tolerance {
                 return Results {
-                    problem: problem, parameters: params,
-                    individual: x.clone(), iterations: i,
-                    duration: precise_time_s() - start_time
+                    problem: problem,
+                    parameters: params,
+                    individual: x.clone(),
+                    iterations: i,
+                    duration: start_time.elapsed().as_secs_f64(),
                 };
             }
             // print verbose information
-            if params.verbosity > 0 && i % 10 == 0 {
+            if params.verbosity > 0 && i % params.interval == 0 {
                 let fitness = x.fitness;
                 let solution = x.solution.clone();
                 thread::spawn(move || {
@@ -75,16 +82,20 @@ pub fn search(problem: Problem, params: Parameters) -> Results {
                         println!("{}th fitness {}", i, fitness);
                     }
                     if params.verbosity >= 2 {
-                        println!{"{:?}", solution};
+                        println! {"{:?}", solution};
                     }
                 });
             }
         }
     }
     if let Some(x) = population.iter().min() {
-        Results { problem: problem, parameters: params,
-                  individual: x.clone(), iterations: params.iterations,
-                  duration: precise_time_s() - start_time }
+        Results {
+            problem: problem,
+            parameters: params,
+            individual: x.clone(),
+            iterations: params.iterations,
+            duration: start_time.elapsed().as_secs_f64(),
+        }
     } else {
         unimplemented!();
     }
@@ -92,7 +103,7 @@ pub fn search(problem: Problem, params: Parameters) -> Results {
 
 /// Tournament selection from n random individuals
 fn select<R: Rng>(population: &[Individual], n: usize, rng: &mut R) -> Individual {
-    if let Some(selected) = (0..n).map(|_| rng.choose(population)).min() {
+    if let Some(selected) = (0..n).map(|_| population.choose(rng)).min() {
         selected.unwrap().clone()
     } else {
         unimplemented!();

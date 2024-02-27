@@ -30,4 +30,5 @@ Based on my prior implementation in [C++][].
 * Clap, rand crates are updated
 
 Usage:
+
 cargo run --release -- --problem rastrigin

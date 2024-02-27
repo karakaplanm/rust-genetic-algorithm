@@ -27,6 +27,7 @@ Based on my prior implementation in [C++][].
 
 
 == Updates
+
 * Clap, rand crates are updated
 
 Usage:

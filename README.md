@@ -26,9 +26,8 @@ Based on my prior implementation in [C++][].
 [C++]: https://github.com/andschwa/uidaho-cs472-project1
 
 
-== Update
+== Updates
 * Clap, rand crates are updated
 
 Usage:
-cargo run --release -- -f rastrigin
-
+cargo run --release -- --problem rastrigin

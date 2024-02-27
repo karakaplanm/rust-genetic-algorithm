@@ -31,8 +31,8 @@ struct Args {
     elit: usize,
     #[arg(short, long, default_value_t = 1000, help = "Verbosity step")]
     interval: usize,
-    #[arg(short, value_enum, default_value_t = Problem::Schwefel, help="Problem Type")]
-    func: Problem,
+    #[arg(long,value_enum, default_value_t = Problem::Schwefel, help="Problem Type")]
+    problem: Problem,
 }
 
 /// Setup and run algorithm to search for solution
@@ -52,7 +52,7 @@ fn main() {
         interval: args.interval,
     };
 
-    let problem = args.func;
+    let problem = args.problem;
     let result = algorithm::search(problem, parameters);
     println!(
         "{:?} converged to {} after {} generations in {} seconds.",

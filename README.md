@@ -26,7 +26,7 @@ Based on my prior implementation in [C++][].
 [C++]: https://github.com/andschwa/uidaho-cs472-project1
 
 
-== Updates
+== New Updates
 
 * Clap, rand crates are updated
 
